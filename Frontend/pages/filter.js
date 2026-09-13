@@ -37,7 +37,7 @@ import { View, StyleSheet, TouchableOpacity, Text, FlatList,
     const empty = []
     
     for (let i = 0; i < FILTERS.length; i++) {
-      inner = new Array(FILTERS[i].data.length).fill(false)
+      const inner = new Array(FILTERS[i].data.length).fill(false)
       empty.push(inner)
     }
 
