@@ -51,6 +51,13 @@ export default function Login ({navigation}) {
         <TouchableOpacity onPress={() => navigation.navigate('Register')}>
           <Text style={{marginTop: 20}}>New? Register</Text>
         </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => navigation.navigate('Plants', { demo: true, gardenId: null })}
+        >
+          <Text style={{marginTop: 16, color: '#3E6B4F', fontWeight: '600'}}>
+            Or browse plant matches without signing in
+          </Text>
+        </TouchableOpacity>
     </View>
   )
 }

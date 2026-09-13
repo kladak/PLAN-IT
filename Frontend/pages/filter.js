@@ -99,11 +99,11 @@ import { View, StyleSheet, TouchableOpacity, Text, FlatList,
         <View style={styles.centeredView}>
           <View style={styles.modalView}>
             <View style={styles.changes}>
-              <TouchableOpacity onPress={() => saveChanges()}>
-                <Text style={{marginRight: 10}}>Save</Text>
+              <TouchableOpacity style={styles.save} onPress={() => saveChanges()}>
+                <Text style={{marginRight: 4, fontWeight: '700', color: '#2F513C'}}>Save</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => discardChanges()}>
-                <Text>Discard</Text>
+              <TouchableOpacity style={styles.discard} onPress={() => discardChanges()}>
+                <Text style={{fontWeight: '600', color: '#5A6B5E'}}>Discard</Text>
               </TouchableOpacity>
             </View>
             <View>
@@ -139,7 +139,11 @@ import { View, StyleSheet, TouchableOpacity, Text, FlatList,
       },
     
       header: {
-        fontSize: 30,
+        fontSize: 20,
+        fontWeight: '700',
+        marginTop: 12,
+        marginBottom: 4,
+        color: '#1C2B21',
       },
     
       centeredView: {
@@ -193,12 +197,19 @@ import { View, StyleSheet, TouchableOpacity, Text, FlatList,
       
       save: {
         borderWidth: 1,
+        borderColor: '#BED0BC',
         borderRadius: 11,
-        
+        paddingHorizontal: 14,
+        paddingVertical: 8,
+        marginRight: 8,
+        backgroundColor: '#BED0BC',
       },
     
       discard: {
         borderWidth: 1,
+        borderColor: '#D5DED6',
         borderRadius: 11,
+        paddingHorizontal: 14,
+        paddingVertical: 8,
       },
     })
