@@ -1,0 +1,17 @@
+# API-only compose. Frontend stays on Expo / Metro as before.
+services:
+  api:
+    build: .
+    ports:
+      - "${PORT:-5001}:5001"
+    environment:
+      HOST: "0.0.0.0"
+      PORT: "5001"
+      AUTO_INIT: "true"
+      PLANT_DATA_PATH: /app/pants_filtered.csv
+      CORS_ORIGINS: ${CORS_ORIGINS:-*}
+      RATE_LIMIT: ${RATE_LIMIT:-60 per minute}
+    # Uncomment to override the baked-in CSV without rebuilding:
+    # volumes:
+    #   - ./pants_filtered.csv:/app/pants_filtered.csv:ro
+    restart: unless-stopped
