@@ -1,157 +1,143 @@
-import numpy as np
+"""Plant recommendation scoring and regional indexes.
+
+Kept close to the original student project logic, with a few correctness
+fixes so scoring and lookups stay consistent after region filtering.
+"""
+
+from __future__ import annotations
+
+import os
+from pathlib import Path
+from typing import Any
+
 import pandas as pd
-from csv import writer
-import random
 
-global region
+# Filters the API scores against, in order matching the search payload.
+FILTER_COLUMNS = [
+    "Sun Exposure",
+    "Color",
+    "Blooming Period",
+    "Fruit Characteristics",
+    "Type",
+    "Size",
+]
+
+DEFAULT_WEIGHTS = [0.5, 0.3, 1.0, 0.3, 1.3, 1.0]
+EARTH_INDEX_WEIGHT = 0.15
+MAX_SCORE = 5.9
+NUM_REGIONS = 8  # regions 0..7 in pants_filtered.csv
+
+_BACKEND_DIR = Path(__file__).resolve().parent
 
 
-# filter plants by region
-def filter_region(region):
-    return df.loc[df['Region'] == region]
+def _default_data_path() -> Path:
+    env = os.environ.get("PLANT_DATA_PATH")
+    if env:
+        return Path(env)
+    return _BACKEND_DIR / "pants_filtered.csv"
 
-# make maps for all plant data to allow easy useage
-def make_dicts(df):
-    dict_list = []
-    for filter in ['Sun Exposure', 'Color', 'Blooming Period', 'Fruit Characteristics', 'Type', 'Size']:
-        temp_dict = dict()
-        count = 0
-        while count < len(df):
-            info = (df.iloc[count])[filter]
-            key = info.lower()
-            if filter != 'Fruit Characteristics' and info != 'set()':  
-                info = ((df.iloc[count])[filter])[1: -1].split(", ")
-            for i in info:
-                if filter != 'Fruit Characteristics' and info != 'set()':
-                    key = i[1:-1]
-                if temp_dict.get(key):
-                    temp_dict.get(key).add(count)
-                else:
-                    dict_set = set()
-                    dict_set.add(count)
-                    temp_dict.update({key: dict_set})
-            count += 1
+
+def load_plants(path: Path | None = None) -> pd.DataFrame:
+    data_path = path or _default_data_path()
+    if not data_path.is_file():
+        raise FileNotFoundError(f"Plant dataset not found: {data_path}")
+    return pd.read_csv(data_path)
+
+
+# Loaded lazily so importing the module in unit tests does not require the
+# full CSV until something asks for it.
+df: pd.DataFrame | None = None
+
+
+def get_df() -> pd.DataFrame:
+    global df
+    if df is None:
+        df = load_plants()
+    return df
+
+
+def filter_region(region: int, source: pd.DataFrame | None = None) -> pd.DataFrame:
+    """Return plants for one region with a clean 0..n-1 index.
+
+    Resetting the index matters: make_dicts stores positional ints, and
+    get_scores used to write scores with .at[i] (label-based). After a
+    region filter those labels no longer match positions.
+    """
+    frame = get_df() if source is None else source
+    filtered = frame.loc[frame["Region"] == region].copy()
+    return filtered.reset_index(drop=True)
+
+
+def make_dicts(frame: pd.DataFrame) -> list[dict[str, set[int]]]:
+    """Build inverted indexes from filter value -> row positions."""
+    dict_list: list[dict[str, set[int]]] = []
+    for column in FILTER_COLUMNS:
+        temp_dict: dict[str, set[int]] = {}
+        for count in range(len(frame)):
+            info = frame.iloc[count][column]
+            # Fruit is a plain TRUE/FALSE string in the CSV; everything else
+            # is a stringified list/set that we unpack.
+            if column == "Fruit Characteristics" or info == "set()":
+                key = str(info).lower()
+                temp_dict.setdefault(key, set()).add(count)
+                continue
+
+            raw = str(info)
+            parts = raw[1:-1].split(", ") if len(raw) >= 2 else [raw]
+            for part in parts:
+                if not part:
+                    continue
+                # Strip surrounding quotes from list/set repr tokens.
+                key = part[1:-1] if len(part) >= 2 and part[0] in "'\"" else part
+                key = key.lower()
+                temp_dict.setdefault(key, set()).add(count)
         dict_list.append(temp_dict)
     return dict_list
 
-# make maps for all plant data, specifically for use in the ML model
-def make_dicts_ml(df):
-    dict_list = []
-    for filter in ['Sun Exposure', 'Color', 'Blooming Period', 'Fruit Characteristics', 'Type', 'Size']:
-        index_list = [0, 2, 3, 5, 6]
-        temp_dict = dict()
-        for count in index_list:
-            info = df.at[count, filter]
-            key = info.lower()
-            if filter != 'Fruit Characteristics' and info != 'set()':  
-                info = df.at[count, filter][1: -1].split(", ")
-            for i in info:
-                if filter != 'Fruit Characteristics' and info != 'set()':
-                    key = i[1:-1]
-                if temp_dict.get(key):
-                    temp_dict.get(key).add(count)
-                else:
-                    dict_set = set()
-                    dict_set.add(count)
-                    temp_dict.update({key: dict_set})
-        dict_list.append(temp_dict)
-    return dict_list
 
-# take in parameter list and based on assigned weights, figure out the best plants to recommend
-# to the user that fits all or most of their criteria
-def get_scores(spec_arr, df, dict_list):
-    df_copy = df.copy()
-    df_copy['Score'] = 0
-    count = 0
-    weights = [.5, .3, 1, .3, 1.3, 1]
-    for filter in ['Sun Exposure', 'Color', 'Blooming Period', 'Fruit Characteristics', 'Type', 'Size']:
-        spec = spec_arr[count]
-        good_indices = dict_list[count].get(spec)
-        if (good_indices is not None):
-            for i in good_indices:
-                df_copy.at[i, 'Score'] += weights[count]
-            count += 1
-    earth_index_weight = .15
-    df_copy['Score'] = df_copy['Score'] + (df_copy['Rating'] * earth_index_weight)
-    max_score = 5.9
-    df_copy['Percent Match'] = df_copy['Score'] / max_score * 100
-    return df_copy
+def get_scores(
+    spec_arr: list[Any],
+    frame: pd.DataFrame,
+    dict_list: list[dict[str, set[int]]],
+    weights: list[float] | None = None,
+) -> pd.DataFrame:
+    """Score plants against user preferences.
 
-# make trainig data for ML model
-def construct_data(df):
-    label_set = ["Pam's Pink American Honeysuckle", 'Verbena', "Giant Turk's Cap", 'Chenille Plant']
-    region = 0
-    df = filter_region(region)
-    
-    small_df = df[df['Name'] == 'Mexican Zinnia']
-    for i in label_set:
-        temp_df = df[df['Name'] == i]
-        small_df = small_df.append(temp_df, ignore_index = True)
-    small_df.drop(labels = 1, inplace=True)
-    small_df.drop(labels = 4, inplace=True)
-    
-    possible_sun = ['sun', 'partial sun', 'shade']
-    possible_colors = ['orange', 'white', 'yellow', 'pink', 'blue', 'red']
-    possible_bloom = ['spring', 'fall', 'summer', 'winter']
-    possible_fruit = ['FALSE', 'TRUE']
-    possible_type = ['vine', 'annual', 'perennial', 'shrub', 'tropical']
-    possible_size = ['small', 'medium', 'large']
-    
-    with open('plants_training_dataset.csv', 'a', encoding = 'utf8', newline = '') as f:
-        my_writer = writer(f)
-        
-        header = ['Sun Exposure', 'Color', 'Blooming Period', 'Fruit?','Type', 'Size', 'Score', 'Plant', 'Good?']
-        features = [possible_sun, possible_colors, possible_bloom, possible_fruit, possible_type, possible_size]
-        match_dict = {"Pam's Pink American Honeysuckle":.80, 'Verbena':.95, "Giant Turk's Cap":.70, 'Chenille Plant':.20, 'Mexican Zinnia':.65}
-        my_writer.writerow(header)
-        for i in range(0, 5000):
-            row = []
-            for j in features:
-                temp = random.randint(0, len(j) - 1)
-                row.append(j[temp])
-            dict_list = make_dicts_ml(small_df)
-            temp_df = get_scores(row, small_df, dict_list)
-            temp_df.sort_values('Score', inplace = True, ascending=[False])
-            prediction = temp_df.head(1)
-            rating = prediction['Rating'].to_string()
-            row.append(rating[5:])
-            name = (prediction['Name'].to_string())[5:]
-            row.append(name)
-            match = match_dict.get(name)
-            random_val = random.random()
-            row.append(random_val > match)
-            
-            # yes_or_no = random.random() > int()
-            # count = 0
-            # first_letter = 0
-            # for char in prediction.split():
-            #     if char.isalpha():
-            #         first_letter = count
-                    
-            #     count += 1
-            my_writer.writerow(row)
-                    
-            
-    
-    
-    
+    Bugfix vs original: always advance the filter index, even when a
+    preference is missing or unmatched. Previously `count` only moved
+    forward on hits, which shifted later filters onto the wrong maps.
+    """
+    weights = weights or DEFAULT_WEIGHTS
+    scored = frame.copy()
+    scored["Score"] = 0.0
+
+    for idx, column in enumerate(FILTER_COLUMNS):
+        spec = spec_arr[idx] if idx < len(spec_arr) else None
+        if spec is None or spec == "":
+            continue
+        good_indices = dict_list[idx].get(str(spec).lower())
+        if good_indices is None:
+            continue
+        for row_i in good_indices:
+            scored.at[row_i, "Score"] = float(scored.at[row_i, "Score"]) + weights[idx]
+
+    scored["Score"] = scored["Score"] + (scored["Rating"] * EARTH_INDEX_WEIGHT)
+    scored["Percent Match"] = scored["Score"] / MAX_SCORE * 100
+    return scored
 
 
-        
-df = pd.read_csv("pants_filtered.csv")
+def init(
+    source: pd.DataFrame | None = None,
+    num_regions: int = NUM_REGIONS,
+) -> tuple[list[list[dict[str, set[int]]]], list[pd.DataFrame]]:
+    """Precompute per-region dataframes and inverted indexes."""
+    frame = get_df() if source is None else source
+    dict_list_per_region: list[list[dict[str, set[int]]]] = []
+    df_list_per_region: list[pd.DataFrame] = []
 
-# initialize variables needed to quickly index and search plants
-def init():
-
-    dict_list_per_region = []
-    df_list_per_region = []
-
-    for i in range(0, 7):
-        temp_df = filter_region(i)
-        dict_list = make_dicts(temp_df)
-        dict_list_per_region.append(dict_list)
+    for region in range(num_regions):
+        temp_df = filter_region(region, frame)
+        dict_list_per_region.append(make_dicts(temp_df))
         df_list_per_region.append(temp_df)
-    
+
     return dict_list_per_region, df_list_per_region
-
-
