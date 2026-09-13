@@ -129,6 +129,5 @@ Backend/
 - No auth — fine for a local/demo API, not for an open internet deployment
 - In-memory rate limits do not share state across Gunicorn workers
 - CSV loaded into memory; not a real datastore
-- Frontend still hard-codes `127.0.0.1:5001`
+- Frontend defaults to `127.0.0.1:5001` (overridable via `EXPO_PUBLIC_API_URL`)
 - Historical secrets remain in git history on older commits
-# ci touch 20260913T230534Z
