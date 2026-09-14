@@ -1,6 +1,6 @@
 import { StyleSheet, Text, TouchableOpacity, Image} from 'react-native';
 
-export default Back = ({navigation, onBack}) => {
+const Back = ({navigation, onBack}) => {
 
   // run optional function before navigating back
   const onClickHandler = () => {
@@ -16,6 +16,8 @@ export default Back = ({navigation, onBack}) => {
             <Text style={styles.text}>  Back</Text>
          </TouchableOpacity>;
 }
+
+export default Back;
 
 const styles=StyleSheet.create({
   container: {
