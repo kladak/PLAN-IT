@@ -14,7 +14,7 @@ honest percent-match from that scorer.
 > were historically committed. They are gitignored now — rotate keys if this
 > repo was shared, and do not re-add them.
 
-## Quick demo (portfolio reviewers)
+## Quick demo
 
 You need **two terminals**: API on `5001`, then Expo.
 
