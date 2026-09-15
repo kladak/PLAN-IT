@@ -5,7 +5,7 @@ import { colors } from '../../src/theme';
 
 /**
  * Compact banner so reviewers can see whether the scoring API is reachable.
- * Does not invent metrics — only reflects /health and /ready.
+ * Reflects /health and /ready only.
  */
 export default function ApiStatusBanner({ refreshKey = 0 }) {
   const [state, setState] = useState({
@@ -57,7 +57,7 @@ export default function ApiStatusBanner({ refreshKey = 0 }) {
     return (
       <TouchableOpacity style={[styles.banner, styles.bad]} onPress={probe}>
         <Text style={styles.textBad}>
-          API offline — {state.error} (tap to retry)
+          API offline: {state.error} (tap to retry)
         </Text>
       </TouchableOpacity>
     );
@@ -73,7 +73,7 @@ export default function ApiStatusBanner({ refreshKey = 0 }) {
         API {state.health?.status || 'ok'}
         {readyOk
           ? ` · ready (${state.ready.regions_loaded} regions)`
-          : ' · indexes not ready — call /init or wait for AUTO_INIT'}
+          : ' · indexes not ready; call /init or wait for AUTO_INIT'}
         {' · '}
         {getApiBase()}
       </Text>

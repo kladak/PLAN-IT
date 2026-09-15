@@ -11,7 +11,7 @@ import Title from './components/title';
 import ApiStatusBanner from './components/ApiStatusBanner';
 import { colors } from '../src/theme';
 
-/** First screen — professional entry + demo path for portfolio reviewers. */
+/** First screen: sign-in plus a no-account path into the ranked browse view. */
 export default function Landing({ navigation }) {
   const { width, height } = useWindowDimensions();
 
@@ -57,7 +57,7 @@ export default function Landing({ navigation }) {
           </TouchableOpacity>
 
           <Text style={styles.hint}>
-            Demo browse talks to the local Flask API — start Backend on port
+            Demo browse talks to the local Flask API. Start Backend on port
             5001 first.
           </Text>
         </View>

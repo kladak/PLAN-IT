@@ -13,7 +13,7 @@ def app(monkeypatch):
     monkeypatch.setenv("AUTO_INIT", "true")
     monkeypatch.setenv("RATE_LIMIT", "1000 per minute")
 
-    # Fresh module state per test — avoid leaking indexes across cases.
+    # Fresh module state per test, so indexes do not leak across cases.
     import importlib
     import plant_recommend
     import app as app_module

@@ -2,21 +2,24 @@
 
 Plant recommendation app (Expo / React Native + Flask) built around
 Texas A&M Earth-Kind plant data. Search and filter plants for a region;
-the Backend scores matches and the client shows ranked results with an
-honest percent-match from that scorer.
+the Backend scores matches and the client shows ranked results with the
+percent-match from that scorer.
 
-![PLAN-IT Expo web — demo browse of ranked Earth-Kind matches from the local Flask API](docs/planit-demo.png)
+![PLAN-IT Expo web: browsing ranked Earth-Kind matches from the local Flask API](docs/planit-demo.png)
 
-Local Expo web screenshot (2026-09-14): **Browse plant matches (no account)** against Flask on port 5001. Rank and percent-match come from `POST /search`. Remote Earth-Kind plant photos may fail to load (upstream 301s). Not a hosted product.
+Local Expo web screenshot (2026-09-14): **Browse plant matches (no account)** against Flask on port 5001. Rank and percent-match come from `POST /search`. Remote Earth-Kind plant photos may fail to load (upstream 301s).
 
 | Layer | Path | Notes |
 |-------|------|--------|
-| Backend | [`Backend/`](Backend/) | Flask API, Docker, tests — see [`Backend/README.md`](Backend/README.md) |
+| Backend | [`Backend/`](Backend/) | Flask API, Docker, tests. See [`Backend/README.md`](Backend/README.md) |
 | Frontend | [`Frontend/`](Frontend/) + root `App.js` | Expo app (iOS / Android / web) |
 
-> Firebase client configs (`google-services.json`, `GoogleService-Info.plist`)
-> were historically committed. They are gitignored now — rotate keys if this
-> repo was shared, and do not re-add them.
+Built collaboratively at UT Austin in 2023 and later extended with backend validation,
+tests, Docker, and CI.
+
+Firebase handles authentication and garden storage. Client configuration lives in
+`Frontend/src/firebase-config.js`; the platform files `google-services.json` and
+`GoogleService-Info.plist` are gitignored and are not needed for the browse path.
 
 ## Demo
 
@@ -25,11 +28,11 @@ You need **two terminals**: API on `5001`, then Expo web.
 1. Start the Backend (see [Run Locally](#run-locally)).
 2. `npx expo start --web` from the repo root.
 3. Landing shows an **API status** strip (`/health` / `/ready`).
-4. Tap **Browse plant matches (no account)** — no Firebase required.
+4. Tap **Browse plant matches (no account)**, which needs no Firebase.
 5. Ranked cards show `#` + percent-match from the scorer. Search, the filter funnel, or tap **R0** to cycle regions 0–7.
 6. Open a plant card for the **preference match** explanation.
 
-Sign-in / gardens still use Firebase and need a valid project config — that path is optional for reviewing the ranking UI.
+Sign-in and gardens use Firebase and need a valid project config. That path is optional if you only want the ranking UI.
 
 ## Results
 
@@ -39,7 +42,7 @@ From the screenshot above (real local run, region 0, empty-filter browse):
 - Ranked plants (Indian Paintbrush, Texas Bluebonnet, Goldenball Leadtree, Texas Sage, …)
 - Percent-match badges from the Backend scorer
 
-Empty-filter browse uses the text-only `/search` path and often lands on a low/floor score (e.g. 25%) until you apply sun / color / season filters. That is the scorer, not fake engagement. No traffic or popularity metrics.
+Empty-filter browse uses the text-only `/search` path and often lands on a floor score around 25% until you apply sun, color or season filters. Applying filters raises the score because the scorer weights matched preferences.
 
 ## Run Locally
 
@@ -97,10 +100,10 @@ physical phone) via `EXPO_PUBLIC_API_URL`.
 
 - Client calls `/health`, `/ready`, `/init`, `/search`, `/get-plant` with structured errors
 - Loading / empty / error + retry on the results screen
-- Rank + percent-match badges and a detail “preference match” card
-- Demo browse path so reviewers are not blocked on Firebase auth
+- Rank and percent-match badges, plus a “preference match” detail card
+- A browse path that works without signing in
 
-No fake traffic or engagement metrics — match % comes from the Backend scorer.
+The match percentage comes from the Backend scorer.
 
 ## Layout (high level)
 

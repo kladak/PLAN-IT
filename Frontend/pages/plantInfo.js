@@ -19,7 +19,7 @@ function sunLabel(sunExpo) {
   if (s.includes('shade') && !s.includes('partial')) return { text: 'Shade', emoji: '☁️' };
   if (s.includes('partial')) return { text: 'Partial sun', emoji: '⛅' };
   if (s) return { text: 'Full sun', emoji: '☀️' };
-  return { text: 'Sun needs unknown', emoji: '—' };
+  return { text: 'Sun needs unknown', emoji: '–' };
 }
 
 function waterLabel(waterReq) {
@@ -29,7 +29,7 @@ function waterLabel(waterReq) {
   return { text: `Water level ${n}`, drops };
 }
 
-/** Detail modal for a ranked plant — shows match % honestly from the API. */
+/** Detail modal for a ranked plant; match % comes straight from the API. */
 export default function ShowModal({
   prop = {},
   modalVisible,
@@ -76,7 +76,7 @@ export default function ShowModal({
                 <Text style={styles.scoreTitle}>Preference match</Text>
                 <Text style={styles.scoreHint}>
                   Ranked by the Backend scorer from your filters + Earth-Kind
-                  rating — not a live popularity metric.
+                  rating, not a live popularity metric.
                 </Text>
               </View>
             </View>
@@ -112,7 +112,7 @@ export default function ShowModal({
             ) : (
               <View style={styles.demoNote}>
                 <Text style={styles.demoNoteText}>
-                  Demo mode — scoring only (sign in to save gardens)
+                  Demo mode: scoring only (sign in to save gardens)
                 </Text>
               </View>
             )}

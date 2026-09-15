@@ -1,4 +1,4 @@
-"""PLAN-IT Flask API — production-ish hardening of the student backend."""
+"""PLAN-IT Flask API."""
 
 from __future__ import annotations
 
@@ -37,7 +37,7 @@ RATE_LIMIT = os.environ.get("RATE_LIMIT", "60 per minute")
 PORT = int(os.environ.get("PORT", "5001"))
 AUTO_INIT = _env_bool("AUTO_INIT", True)
 
-# Regional indexes — populated by /init or startup
+# Regional indexes, populated by /init or at startup
 dict_list_per_region: list | None = None
 df_list_per_region: list | None = None
 

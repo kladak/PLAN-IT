@@ -1,4 +1,4 @@
-/** Shared visual tokens — keep screens looking intentional, not ad-hoc. */
+/** Shared visual tokens so screens stay consistent. */
 export const colors = {
   bg: '#F7F9F6',
   surface: '#FFFFFF',
@@ -44,7 +44,7 @@ export function formatMatch(percent) {
 
 /** Texas A&M Earth-Kind style regions used by the Backend (0–7). */
 export const REGIONS = [
-  { id: 0, label: 'Region 0 — default / sample' },
+  { id: 0, label: 'Region 0 (default sample)' },
   { id: 1, label: 'Region 1' },
   { id: 2, label: 'Region 2' },
   { id: 3, label: 'Region 3' },

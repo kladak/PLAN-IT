@@ -109,7 +109,7 @@ export default function Plants(props) {
     []
   );
 
-  // Initial browse so portfolio reviewers see ranked results immediately.
+  // Initial browse so the screen shows ranked results before any filter is applied.
   useEffect(() => {
     updateSearchResults('', {}, region);
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -1,17 +1,16 @@
 # PLAN-IT Backend
 
 Flask API that scores and searches Texas A&M Earth-Kind plant data for the
-PLAN-IT React Native client. This is a student project backend brought up to a
-**defendable production-ish** slice: typed validation, structured errors,
-health checks, request IDs, basic rate limiting, and Docker — without inventing
-fake traffic metrics or rewriting the mobile app.
+PLAN-IT React Native client. Adds typed validation, structured errors, health
+and readiness checks, request IDs, rate limiting and a Dockerfile on top of the
+original course-project backend.
 
 ## What it does
 
 | Method | Path | Purpose |
 |--------|------|---------|
-| `GET` | `/health` | Liveness — process is up |
-| `GET` | `/ready` | Readiness — regional indexes loaded |
+| `GET` | `/health` | Liveness: the process is up |
+| `GET` | `/ready` | Readiness: regional indexes are loaded |
 | `GET` | `/init` | Build per-region indexes (also runs on startup when `AUTO_INIT=true`) |
 | `POST` | `/search` | Rank plants for a region + optional filters / text query |
 | `GET` | `/get-plant` | Fetch one plant by `id` + `region` |
@@ -64,7 +63,7 @@ docker compose up --build
 # curl http://127.0.0.1:5001/ready
 ```
 
-Compose does **not** start the Expo app — mobile stays on Metro as before.
+Compose does not start the Expo app; mobile stays on Metro as before.
 
 ## Tests
 
@@ -82,10 +81,10 @@ ruff check app.py plant_recommend.py tests --select E9,F63,F7,F82
 
 See `.env.example`. Notable knobs:
 
-- `CORS_ORIGINS` — `*` (dev) or comma-separated allowlist
-- `RATE_LIMIT` — flask-limiter string, default `60 per minute`
-- `PLANT_DATA_PATH` — CSV used for recommendations
-- `AUTO_INIT` — preload indexes on process start
+- `CORS_ORIGINS`: `*` (dev) or a comma-separated allowlist
+- `RATE_LIMIT`: flask-limiter string, default `60 per minute`
+- `PLANT_DATA_PATH`: CSV used for recommendations
+- `AUTO_INIT`: preload indexes on process start
 
 ## Data notes
 
@@ -101,13 +100,8 @@ Earlier commits on `master` included:
 - `Backend/venv/` (full virtualenv)
 - `Backend.zip`
 
-Those paths are now **gitignored** and removed from the branch index. **Rotate
-any Firebase / API keys that lived in those files** if this repo was ever
-public or shared — git history on `master` still contains the old blobs until
-you rewrite history (not done by this PR on purpose). Prefer `git filter-repo`
-or GitHub’s secret scanning guidance if you need a full purge.
-
-Never commit `.env`, `venv/`, or fresh Firebase plist/json files.
+Those paths are gitignored and no longer tracked. Do not commit `.env`, `venv/`, or
+Firebase plist/json files.
 
 ## Layout
 
@@ -124,10 +118,10 @@ Backend/
   requirements-dev.txt
 ```
 
-## Remaining gaps (honest)
+## Remaining gaps
 
-- No auth — fine for a local/demo API, not for an open internet deployment
+- No auth; an internet-facing deployment would need it
 - In-memory rate limits do not share state across Gunicorn workers
-- CSV loaded into memory; not a real datastore
+- The CSV is loaded into memory at startup; a datastore would be needed to scale
 - Frontend defaults to `127.0.0.1:5001` (overridable via `EXPO_PUBLIC_API_URL`)
 - Historical secrets remain in git history on older commits

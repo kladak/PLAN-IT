@@ -4,7 +4,7 @@
  * Base URL (first match wins):
  *   1. EXPO_PUBLIC_API_URL
  *   2. window.__PLANIT_API_URL__ (web override)
- *   3. http://127.0.0.1:5001  (local default — same as Backend README)
+ *   3. http://127.0.0.1:5001  (local default, matching the Backend README)
  */
 
 const DEFAULT_API_BASE = 'http://127.0.0.1:5001';
@@ -96,7 +96,7 @@ const init = async () => {
       return ready;
     }
   } catch (err) {
-    // /ready 503 or network — try /init below when possible
+    // /ready returned 503 or the network failed; try /init below when possible
     if (err.status === 0) throw err;
   }
   return request('/init');
@@ -112,7 +112,7 @@ const getPlant = async (id, region = 0) => {
 };
 
 /**
- * POST /search — rank plants for a region + optional filters / text query.
+ * POST /search: rank plants for a region, with optional filters and text query.
  * Returns { results: [...] }. Throws ApiError on failure.
  */
 const searchPlants = async (searchParams = {}) => {
