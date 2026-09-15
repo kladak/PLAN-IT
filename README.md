@@ -5,10 +5,6 @@ Texas A&M Earth-Kind plant data. Search and filter plants for a region;
 the Backend scores matches and the client shows ranked results with the
 percent-match from that scorer.
 
-![PLAN-IT Expo web: browsing ranked Earth-Kind matches from the local Flask API](docs/planit-demo.png)
-
-Local Expo web screenshot (2026-09-14): **Browse plant matches (no account)** against Flask on port 5001. Rank and percent-match come from `POST /search`. Remote Earth-Kind plant photos may fail to load (upstream 301s).
-
 | Layer | Path | Notes |
 |-------|------|--------|
 | Backend | [`Backend/`](Backend/) | Flask API, Docker, tests. See [`Backend/README.md`](Backend/README.md) |

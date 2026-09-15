@@ -92,16 +92,11 @@ See `.env.example`. Notable knobs:
 - Cleaning / scrape scripts: `data_cleaning.py`, `webscrape.py` (offline tools)
 - Training CSV from earlier ML experiments is kept but unused by the API
 
-## Security / secrets warning
+## Security
 
-Earlier commits on `master` included:
-
-- `google-services.json` / `GoogleService-Info.plist` (Firebase client configs)
-- `Backend/venv/` (full virtualenv)
-- `Backend.zip`
-
-Those paths are gitignored and no longer tracked. Do not commit `.env`, `venv/`, or
-Firebase plist/json files.
+Firebase client configuration is public by design. Authorization depends on the Firebase
+Security Rules configured for the project; service-account credentials and private keys
+must remain outside the repository.
 
 ## Layout
 
@@ -124,4 +119,3 @@ Backend/
 - In-memory rate limits do not share state across Gunicorn workers
 - The CSV is loaded into memory at startup; a datastore would be needed to scale
 - Frontend defaults to `127.0.0.1:5001` (overridable via `EXPO_PUBLIC_API_URL`)
-- Historical secrets remain in git history on older commits
